@@ -1,13 +1,15 @@
-// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
+﻿// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
+#include <glad/glad.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+#include <GLFW/glfw3.h>
+#include <iostream>
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -57,6 +59,12 @@ int main(int, char**)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -69,7 +77,14 @@ int main(int, char**)
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic
     ImGuiStyle& style = ImGui::GetStyle();
-    io.Fonts->AddFontFromFileTTF("OpenSans-Regular.ttf", 16.0f);
+    
+    ImVector<ImWchar> ranges;
+    ImFontGlyphRangesBuilder builder;
+    builder.AddRanges(io.Fonts->GetGlyphRangesDefault()); // Add one of the default ranges
+    builder.AddText(u8"∀(x, y ∈ A ∪ B; x ≠ y) x² − y² ≥ 0");
+    builder.BuildRanges(&ranges);                          // Build the final result (ordered ranges with all the unique characters submitted)
+    io.Fonts->AddFontFromFileTTF("NotoSansMath-Regular.ttf", 16.0f, NULL, ranges.Data);
+
     setTheme(style, false);
 
     // Setup Platform/Renderer backends
@@ -116,6 +131,8 @@ int main(int, char**)
         {
             if (ImGui::BeginMenu("File")) 
             {
+                if (ImGui::MenuItem("New")) {}
+                if (ImGui::MenuItem("Open")) {}
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit", "Alt+F4"))
                     glfwSetWindowShouldClose(window, true);
@@ -160,7 +177,7 @@ int main(int, char**)
         if (show_another_window)
         {
             ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
+            ImGui::Text(u8"Hello from another window! ∀(x, y ∈ A ∪ B; x ≠ y) x² − y² ≥ 0");
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
